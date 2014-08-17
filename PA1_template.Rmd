@@ -13,9 +13,10 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 ##Part 1: Loading the data
 
-The following is the code used to set the working directory and load the data set
+The following is the code used to set the working directory and load the data set and libraries used.
 
 ```{r}
+library(lattice)
 setwd("C:/Users/Marcello/Desktop/Coursera/Reproducible Research/repdata-data-activity")
 activity = read.csv("activity.csv")
 ```
@@ -108,4 +109,26 @@ ts_median_new = as.integer(median(total_steps_new))
 hist(total_steps_new, main =paste0("Histogram of total number of steps taken per day \n (mean = ", ts_mean_new, ", median = ", ts_median_new,")"), xlab = "Steps", ylab = "Days")
 ```
 
-Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+####Comments
+Because `r 100 - percent_observed`% observations were missing and this set was replaced with the mean, we naturally assume that the distribution will tend to be more centered. This is precisely what occurred. The previously right tailed distribution that seems to resemble a poisson distribution, now looks much more normal, higher kurtosis (i.e. less variation and more distribution directly surrounding the mean).
+
+
+
+###Part 4: Weekdays verus Weekends
+
+We would assume that for any given day, activity level wouldn't differ significantly. But, depending on the persons line of work, cold he be more active during the week or on the weekend? This could give us some insight into the person. For, if he is more active on the weekend we could conclude that maybe he has a sedentary career, while if the contrary is true maybe the person has a very active job and prefers to relax during the weekend.
+
+The following panel plot gives a time series of the average number of steps across an interval, as with the previous time series, but splits activity day by "weekday" and "weekend", to give us a side by side visual representation.
+
+What follows is the code and the output.
+
+```{r}
+week_day = activity_new$date
+levels(week_day) = weekdays(as.Date(levels(week_day), format="%Y-%m-%d"))
+week_part = as.integer(as.integer(week_day) > 5)
+activity_new = cbind(activity_new, weekpart = factor(x = week_part, levels = c(0, 1), labels = c("Weekday", "Weekend")))
+
+activity_final = tapply(activity_new[, 1], activity_new[, 3:4], mean)
+xyplot(activity_final[ ,1] ~ as.numeric(rownames(activity_final)) | colnames(activity_final), type = "l", main = "Time Series", xlab = "Interval", ylab = "Steps", layout=c(1,2))
+```
