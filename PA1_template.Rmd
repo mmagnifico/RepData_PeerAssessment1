@@ -1,14 +1,18 @@
 ---
 title: "Reproducible Research - Peer Assessment 1"
-date: "Sunday, August 17, 2014"
 output: html_document
 ---
+
+
+
 
 ##Introduction
 
 It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the "quantified self" movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
 
 This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+
+
 
 
 ##Part 1: Loading the data
@@ -20,6 +24,8 @@ library(lattice)
 setwd("C:/Users/Marcello/Desktop/Coursera/Reproducible Research/repdata-data-activity")
 activity = read.csv("activity.csv")
 ```
+
+
 
 
 ##Part 2: Initial data exploration
@@ -39,15 +45,17 @@ Some summary statistics of the initial data exploration are as follows:
 - Median: `r ts_median`
 
 
+
+
 ##Part 3: Patterns in the data
 
 Next we're going to make a time series plot to see if there are any daily patterns in the data. The plot will compare the 5-minute intervals with the steps taken, averaged across all days.
 
 ```{r}
 avg_steps_overint = tapply(activity$steps, activity$interval, mean, na.rm = TRUE)
-plot(x = names(avg_steps_overint), y = avg_steps_overint, type = "l", main = "Time series of average number of steps taken per interval", xlab = "Interval", ylab = "Steps")
 max_steps = max(avg_steps_overint)
 max_steps_interval = names(avg_steps_overint[max_steps])
+plot(x = names(avg_steps_overint), y = avg_steps_overint, type = "l", main = "Time series of average number of steps taken per interval", xlab = "Interval", ylab = "Steps")
 ```
 
 We also see that the intveral with the highest number of average steps, at `r max_steps`, occurs toward the middle of the day at `r max_steps_interval` minutes.
@@ -56,6 +64,8 @@ We also see that the intveral with the highest number of average steps, at `r ma
 ##Part 4: Caring for missing values
 
 There are a number of days and intervals where the pedometer has no recordings, which is different from recording no steps taken. In an attempt to better understand days and times when the pedometer was "not functional", we're going to fill in the gaps with some summary statistics.
+
+
 
 ###Impact of missing data
 
@@ -69,8 +79,11 @@ total_observed = nrow(activity)
 
 We're missing `r total_missing` observations out of a total number of `r total_observed`, which means that approximately `r percent_observed = as.integer((1 - total_missing / total_observed) * 100); percent_observed`% of interval observations were not missing.
 
+
+
 ###Filling in the gaps
 In order to account for the approximately `r 100 - percent_observed`% observations, we're going to replace each missing observation with the average steps per interval as calculated in the previous section.
+
 
 ####Example
 
@@ -98,6 +111,7 @@ The data set now looks like:
 activity_new[as.integer(rownames(example)), ]
 ```
 
+
 ###New data set
 
 Repeating our initial exploration, this time with missing values represented, we obtain the following time series.
@@ -112,6 +126,7 @@ hist(total_steps_new, main =paste0("Histogram of total number of steps taken per
 
 ####Comments
 Because `r 100 - percent_observed`% observations were missing and this set was replaced with the mean, we naturally assume that the distribution will tend to be more centered. This is precisely what occurred. The previously right tailed distribution that seems to resemble a poisson distribution, now looks much more normal, higher kurtosis (i.e. less variation and more distribution directly surrounding the mean).
+
 
 
 
@@ -132,3 +147,9 @@ activity_new = cbind(activity_new, weekpart = factor(x = week_part, levels = c(0
 activity_final = tapply(activity_new[, 1], activity_new[, 3:4], mean)
 xyplot(activity_final[ ,1] ~ as.numeric(rownames(activity_final)) | colnames(activity_final), type = "l", main = "Time Series", xlab = "Interval", ylab = "Steps", layout=c(1,2))
 ```
+
+
+
+
+###Conclusions
+The graphs indicates that activity behaviour doesn't differ significantly with regard to the time of week. Even considering the effects of missing values on the data set, we can observe that it is nearly equally as likely that they are missing on the weekend as during the week. So, we can reasonably conclude that activity behaviour is constant during the week and that if the person's job is sedentary so is his leisure time and vice versa (that or the individual works 7 days a week).
