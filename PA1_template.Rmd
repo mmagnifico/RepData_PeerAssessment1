@@ -20,6 +20,7 @@ setwd("C:/Users/Marcello/Desktop/Coursera/Reproducible Research/repdata-data-act
 activity = read.csv("activity.csv")
 ```
 
+
 #Part 2: Initial data exploration
 
 Here we're getting an idea of how the data looks. We will ignore any missing values and make a histogram of the total number of steps taken each day.
@@ -35,10 +36,47 @@ Some summary statistics of the initial data exploration are as follows:
      - Mean: `r ts_mean`
      - Median: `r ts_median`
 
-You can also embed plots, for example:
 
-```{r, echo=FALSE}
-plot(cars)
+#Part 3: Patterns in the data
+
+Next we're going to make a time series plot to see if there are any daily patterns in the data. The plot will compare the 5-minute intervals with the steps taken, averaged across all days.
+
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r}
+avg_steps_overint = tapply(activity$steps, activity$interval, mean, na.rm = TRUE)
+plot(x = names(avg_steps_overint), y = avg_steps_overint, type = "l", main = "Time series of average number of steps taken per interval", xlab = "Interval", ylab = "Steps")
+max_steps = max(avg_steps_overint)
+max_steps_interval = names(avg_steps_overint[max_steps])
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+We also see that the intveral with the highest number of average steps, at `r max_steps`, occurs toward the middle of the day at `r max_steps_interval` minutes.
+
+
+#Part 4: Caring for missing values
+
+There are a number of days and intervals where the pedometer has no recordings, which is different from recording no steps taken. In an attempt to better understand days and times when the pedometer was "not functional", we're going to fill in the gaps with some summary statistics.
+
+##Impact of missing data
+
+The following gives us some insight on how much data is missing.
+
+```{r}
+total_missing = sum(as.integer(is.na(activity$steps)))
+total_observed = nrow(activity)
+percent_observed = as.integer((1 - total_missing / total_observed) * 100)
+```
+
+We're missing `r total_missing` observations out of a total number of `r total_observed`, which means that approximately `as.integer((1 - total_missing / total_observed) * 100)`% of interval observations were not missing.
+
+##Filling in the gaps
+In order to account for the approximately `r 100 - percent_observed`% observations, we're going to replace each missing observation with the average steps per interval as calculated in the previous section.
+
+###Example
+
+
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
