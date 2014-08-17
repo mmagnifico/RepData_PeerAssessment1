@@ -19,7 +19,8 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 The following code is used to set the working directory and load the data set and libraries used.
 
-```{r}
+
+```r
 library(lattice)
 setwd("C:/Users/Marcello/Desktop/Coursera/Reproducible Research/repdata-data-activity")
 activity = read.csv("activity.csv")
@@ -32,17 +33,20 @@ activity = read.csv("activity.csv")
 
 Here we're getting an idea of how the data looks. We will ignore any missing values and make a histogram of the total number of steps taken each day.
 
-```{r}
+
+```r
 total_steps = tapply(activity$steps, activity$date, sum, na.rm = TRUE)
 ts_mean = as.integer(mean(total_steps))
 ts_median = as.integer(median(total_steps))
 hist(total_steps, main =paste0("Histogram of total number of steps taken per day \n (mean = ", ts_mean, ", median = ", ts_median,")"), xlab = "Steps", ylab = "Days")
 ```
 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
+
 Some summary statistics of the initial data exploration.
 
-- Mean: `r ts_mean`
-- Median: `r ts_median`
+- Mean: 9354
+- Median: 10395
 
 
 
@@ -51,14 +55,17 @@ Some summary statistics of the initial data exploration.
 
 Next we're going to make a time series plot to see if there are any daily patterns in the data. The plot will show the average steps taken across the 5-minute intervals the set of days.
 
-```{r}
+
+```r
 avg_steps_overint = tapply(activity$steps, activity$interval, mean, na.rm = TRUE)
 max_steps = max(avg_steps_overint)
 max_steps_interval = names(avg_steps_overint[max_steps])
 plot(x = names(avg_steps_overint), y = avg_steps_overint, type = "l", main = "Time series of average number of steps taken per interval", xlab = "Interval", ylab = "Steps")
 ```
 
-We see that the intveral with the highest number of average steps, at about `r as.integer(max_steps)`, occurs toward the middle of the day at about `r as.integer(as.integer(max_steps_interval) / 60)` o'clock.
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
+We see that the intveral with the highest number of average steps, at about 206, occurs toward the middle of the day at about 28 o'clock.
 
 
 ##Part 4: Caring for missing values
@@ -71,44 +78,62 @@ There are a number of days and intervals where the pedometer has no recordings, 
 
 The following gives us some insight on how much data is missing.
 
-```{r}
+
+```r
 total_missing = sum(as.integer(is.na(activity$steps)))
 total_observed = nrow(activity)
 ##percent_observed = as.integer((1 - total_missing / total_observed) * 100)
 ```
 
-We're missing `r total_missing` observations out of a total number of `r total_observed`, which means that approximately `r percent_observed = as.integer((1 - total_missing / total_observed) * 100); percent_observed`% of interval observations were not missing.
+We're missing 2304 observations out of a total number of 17568, which means that approximately 86% of interval observations were not missing.
 
 
 
 ###Filling in the gaps
-In order to account for the approximately `r 100 - percent_observed`% observations, we're going to replace each missing observation with the average steps per interval as calculated in the previous section.
+In order to account for the approximately 14% observations, we're going to replace each missing observation with the average steps per interval as calculated in the previous section.
 
 
 ####Example
 
-The following is a subset of missing values, for interval `r j = names(avg_steps_overint)[30]; j`. In this case the value for steps, currently "NA", will be replaced with the average steps over the interval: `r avg_steps_overint[j]`.
+The following is a subset of missing values, for interval 225. In this case the value for steps, currently "NA", will be replaced with the average steps over the interval: 0.1321.
 
-```{r, echo=FALSE}
-example = activity[is.na(activity$steps) & activity$interval==j, ]
-example
+
+```
+##       steps       date interval
+## 30       NA 2012-10-01      225
+## 2046     NA 2012-10-08      225
+## 8958     NA 2012-11-01      225
+## 9822     NA 2012-11-04      225
+## 11262    NA 2012-11-09      225
+## 11550    NA 2012-11-10      225
+## 12702    NA 2012-11-14      225
+## 17310    NA 2012-11-30      225
 ```
 
 The code chunk for creating the new data set is as follows.
 
-```{r}
+
+```r
 activity_new = activity
 for (i in seq_along(avg_steps_overint)) {
 
      activity_new[is.na(activity_new$steps) & activity_new$interval==names(avg_steps_overint)[i], 1] = avg_steps_overint[i]
 }
-
 ```
 
 The subset now looks like this.
 
-```{r, echo=FALSE}
-activity_new[as.integer(rownames(example)), ]
+
+```
+##        steps       date interval
+## 30    0.1321 2012-10-01      225
+## 2046  0.1321 2012-10-08      225
+## 8958  0.1321 2012-11-01      225
+## 9822  0.1321 2012-11-04      225
+## 11262 0.1321 2012-11-09      225
+## 11550 0.1321 2012-11-10      225
+## 12702 0.1321 2012-11-14      225
+## 17310 0.1321 2012-11-30      225
 ```
 
 
@@ -116,16 +141,19 @@ activity_new[as.integer(rownames(example)), ]
 
 Repeating our initial exploration, this time with missing values represented, we obtain the following time series.
 
-```{r}
+
+```r
 total_steps_new = tapply(activity_new$steps, activity_new$date, sum, na.rm = TRUE)
 ts_mean_new = as.integer(mean(total_steps_new))
 ts_median_new = as.integer(median(total_steps_new))
 hist(total_steps_new, main =paste0("Histogram of total number of steps taken per day \n (mean = ", ts_mean_new, ", median = ", ts_median_new,")"), xlab = "Steps", ylab = "Days")
 ```
 
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
+
 
 ####Comments
-Because `r 100 - percent_observed`% observations were missing and this set was replaced with the mean, we naturally assume that the distribution will tend to be more centered. This is precisely what occurred. The previously right tailed distribution that seems to resemble a poisson distribution, now looks much more normal, but with a high kurtosis (i.e. less variation and more distribution directly surrounding the mean).
+Because 14% observations were missing and this set was replaced with the mean, we naturally assume that the distribution will tend to be more centered. This is precisely what occurred. The previously right tailed distribution that seems to resemble a poisson distribution, now looks much more normal, but with a high kurtosis (i.e. less variation and more distribution directly surrounding the mean).
 
 
 
@@ -138,7 +166,8 @@ The following panel plot gives a time series of the average number of steps acro
 
 What follows is the code and the output.
 
-```{r}
+
+```r
 week_day = activity_new$date
 levels(week_day) = weekdays(as.Date(levels(week_day), format="%Y-%m-%d"))
 week_part = as.integer(as.integer(week_day) > 5)
@@ -147,6 +176,8 @@ activity_new = cbind(activity_new, weekpart = factor(x = week_part, levels = c(0
 activity_final = tapply(activity_new[, 1], activity_new[, 3:4], mean)
 xyplot(activity_final[ ,1] ~ as.numeric(rownames(activity_final)) | colnames(activity_final), type = "l", main = "Time Series", xlab = "Interval", ylab = "Steps", layout=c(1,2))
 ```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
 
 
 
