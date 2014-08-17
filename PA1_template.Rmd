@@ -1,17 +1,39 @@
 ---
-title: "PA1_template"
-author: "Marcello"
+title: "PReproducible Research - Peer Assessment 1"
 date: "Sunday, August 17, 2014"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+#Introduction
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the "quantified self" movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
+
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+
+
+#Part 1: Loading the data
+
+The following is the code used to set the working directory and load the data set
 
 ```{r}
-summary(cars)
+setwd("C:/Users/Marcello/Desktop/Coursera/Reproducible Research/repdata-data-activity")
+activity = read.csv("activity.csv")
 ```
+
+#Part 2: Initial data exploration
+
+Here we're getting an idea of how the data looks. We will ignore any missing values and make a histogram of the total number of steps taken each day.
+
+```{r}
+total_steps = tapply(activity$steps, activity$date, sum, na.rm = TRUE)
+ts_mean = mean(total_steps)
+ts_median = median(total_steps)
+hist(total_steps, main =paste0("Histogram of total number of steps taken per day \n (mean = ", as.integer(ts_mean), ", median = ", ts_median,")"), xlab = "Steps", ylab = "Days")
+```
+
+Some summary statistics of the initial data exploration are as follows:
+     - Mean: `r ts_mean`
+     - Median: `r ts_median`
 
 You can also embed plots, for example:
 
