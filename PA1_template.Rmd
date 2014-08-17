@@ -27,14 +27,15 @@ Here we're getting an idea of how the data looks. We will ignore any missing val
 
 ```{r}
 total_steps = tapply(activity$steps, activity$date, sum, na.rm = TRUE)
-ts_mean = mean(total_steps)
-ts_median = median(total_steps)
-hist(total_steps, main =paste0("Histogram of total number of steps taken per day \n (mean = ", as.integer(ts_mean), ", median = ", ts_median,")"), xlab = "Steps", ylab = "Days")
+ts_mean = as.integer(mean(total_steps))
+ts_median = as.integer(median(total_steps))
+hist(total_steps, main =paste0("Histogram of total number of steps taken per day \n (mean = ", ts_mean, ", median = ", ts_median,")"), xlab = "Steps", ylab = "Days")
 ```
 
 Some summary statistics of the initial data exploration are as follows:
-     - Mean: `r ts_mean`
-     - Median: `r ts_median`
+
+- Mean: `r ts_mean`
+- Median: `r ts_median`
 
 
 ##Part 3: Patterns in the data
@@ -62,10 +63,10 @@ The following gives us some insight on how much data is missing.
 ```{r}
 total_missing = sum(as.integer(is.na(activity$steps)))
 total_observed = nrow(activity)
-percent_observed = as.integer((1 - total_missing / total_observed) * 100)
+##percent_observed = as.integer((1 - total_missing / total_observed) * 100)
 ```
 
-We're missing `r total_missing` observations out of a total number of `r total_observed`, which means that approximately `as.integer((1 - total_missing / total_observed) * 100)`% of interval observations were not missing.
+We're missing `r total_missing` observations out of a total number of `r total_observed`, which means that approximately `r percent_observed = as.integer((1 - total_missing / total_observed) * 100); percent_observed`% of interval observations were not missing.
 
 ###Filling in the gaps
 In order to account for the approximately `r 100 - percent_observed`% observations, we're going to replace each missing observation with the average steps per interval as calculated in the previous section.
@@ -75,7 +76,8 @@ In order to account for the approximately `r 100 - percent_observed`% observatio
 The following is a subset of missing values, for interval `r j = names(avg_steps_overint)[30]; j`. In this case the value for steps, currently "NA", will be replaced with `r avg_steps_overint[j]`.
 
 ```{r, echo=FALSE}
-activity_new[is.na(activity_new$steps) & activity_new$interval==names(avg_steps_overint)[j], ]
+example = activity[is.na(activity$steps) & activity$interval==j, ]
+example
 ```
 
 The code chunk for creating the new data set is as follows.
@@ -85,10 +87,15 @@ activity_new = activity
 for (i in seq_along(avg_steps_overint)) {
 
      activity_new[is.na(activity_new$steps) & activity_new$interval==names(avg_steps_overint)[i], 1] = avg_steps_overint[i]
-
 }
+
 ```
 
+The data set now looks like:
+
+```{r, echo=FALSE}
+activity_new[as.integer(rownames(example)), ]
+```
 
 ###New data set
 
@@ -96,9 +103,9 @@ Repeating our initial exploration, this time with missing values represented, we
 
 ```{r}
 total_steps_new = tapply(activity_new$steps, activity_new$date, sum, na.rm = TRUE)
-ts_mean_new = mean(total_steps_new)
-ts_median_new = median(total_steps_new)
-hist(total_steps_new, main =paste0("Histogram of total number of steps taken per day \n (mean = ", as.integer(ts_mean_new), ", median = ", ts_median_new,")"), xlab = "Steps", ylab = "Days")
+ts_mean_new = as.integer(mean(total_steps_new))
+ts_median_new = as.integer(median(total_steps_new))
+hist(total_steps_new, main =paste0("Histogram of total number of steps taken per day \n (mean = ", ts_mean_new, ", median = ", ts_median_new,")"), xlab = "Steps", ylab = "Days")
 ```
 
 Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
