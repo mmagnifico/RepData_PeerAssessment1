@@ -1,17 +1,17 @@
 ---
-title: "PReproducible Research - Peer Assessment 1"
+title: "Reproducible Research - Peer Assessment 1"
 date: "Sunday, August 17, 2014"
 output: html_document
 ---
 
-#Introduction
+##Introduction
 
 It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the "quantified self" movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
 
 This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
 
-#Part 1: Loading the data
+##Part 1: Loading the data
 
 The following is the code used to set the working directory and load the data set
 
@@ -21,7 +21,7 @@ activity = read.csv("activity.csv")
 ```
 
 
-#Part 2: Initial data exploration
+##Part 2: Initial data exploration
 
 Here we're getting an idea of how the data looks. We will ignore any missing values and make a histogram of the total number of steps taken each day.
 
@@ -37,11 +37,9 @@ Some summary statistics of the initial data exploration are as follows:
      - Median: `r ts_median`
 
 
-#Part 3: Patterns in the data
+##Part 3: Patterns in the data
 
 Next we're going to make a time series plot to see if there are any daily patterns in the data. The plot will compare the 5-minute intervals with the steps taken, averaged across all days.
-
-Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 ```{r}
 avg_steps_overint = tapply(activity$steps, activity$interval, mean, na.rm = TRUE)
@@ -53,11 +51,11 @@ max_steps_interval = names(avg_steps_overint[max_steps])
 We also see that the intveral with the highest number of average steps, at `r max_steps`, occurs toward the middle of the day at `r max_steps_interval` minutes.
 
 
-#Part 4: Caring for missing values
+##Part 4: Caring for missing values
 
 There are a number of days and intervals where the pedometer has no recordings, which is different from recording no steps taken. In an attempt to better understand days and times when the pedometer was "not functional", we're going to fill in the gaps with some summary statistics.
 
-##Impact of missing data
+###Impact of missing data
 
 The following gives us some insight on how much data is missing.
 
@@ -69,14 +67,38 @@ percent_observed = as.integer((1 - total_missing / total_observed) * 100)
 
 We're missing `r total_missing` observations out of a total number of `r total_observed`, which means that approximately `as.integer((1 - total_missing / total_observed) * 100)`% of interval observations were not missing.
 
-##Filling in the gaps
+###Filling in the gaps
 In order to account for the approximately `r 100 - percent_observed`% observations, we're going to replace each missing observation with the average steps per interval as calculated in the previous section.
 
-###Example
+####Example
+
+The following is a subset of missing values, for interval `r j = names(avg_steps_overint)[30]; j`. In this case the value for steps, currently "NA", will be replaced with `r avg_steps_overint[j]`.
+
+```{r, echo=FALSE}
+activity_new[is.na(activity_new$steps) & activity_new$interval==names(avg_steps_overint)[j], ]
+```
+
+The code chunk for creating the new data set is as follows.
+
+```{r}
+activity_new = activity
+for (i in seq_along(avg_steps_overint)) {
+
+     activity_new[is.na(activity_new$steps) & activity_new$interval==names(avg_steps_overint)[i], 1] = avg_steps_overint[i]
+
+}
+```
 
 
-Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+###New data set
 
-Create a new dataset that is equal to the original dataset but with the missing data filled in.
+Repeating our initial exploration, this time with missing values represented, we obtain the following time series.
+
+```{r}
+total_steps_new = tapply(activity_new$steps, activity_new$date, sum, na.rm = TRUE)
+ts_mean_new = mean(total_steps_new)
+ts_median_new = median(total_steps_new)
+hist(total_steps_new, main =paste0("Histogram of total number of steps taken per day \n (mean = ", as.integer(ts_mean_new), ", median = ", ts_median_new,")"), xlab = "Steps", ylab = "Days")
+```
 
 Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
